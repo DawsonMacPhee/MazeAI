@@ -1,0 +1,7 @@
+venv
+__pycache__
+.idea
+.vscode
+src/gallery/
+src/datasets/images/
+rectangular_mazes_*
