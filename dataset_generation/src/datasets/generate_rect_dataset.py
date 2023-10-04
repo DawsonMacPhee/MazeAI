@@ -5,6 +5,8 @@ import math
 import time
 from sys import argv
 import argparse, sys
+import numpy
+from PIL import Image
 
 from hashlib import sha256
 from pathlib import Path
@@ -35,8 +37,10 @@ class RectangularDataset:
         # create a folder for this dataset in current directory
         dataset_directory = cwd_path + ds_name
         dataset_images_dir = f'{dataset_directory}/images/'
+        dataset_matrix_dir = f'{dataset_directory}/matrices/'
         Path(dataset_directory).mkdir(parents=True)
         Path(dataset_images_dir).mkdir()
+        Path(dataset_matrix_dir).mkdir()
 
         # add logs.txt
         log_file_name = f'{dataset_directory}/logs.txt'
@@ -83,6 +87,16 @@ class RectangularDataset:
             # maze will be saved at this path
             maze_image_path = f'{dataset_images_dir}/{maze_id}.png'
             maze_image.save(maze_image_path)
+
+            # store a matrix tilemap
+            maze_matrix_path = f'{dataset_matrix_dir}/{maze_id}.maze'
+            image_arr = numpy.array(maze_image, dtype=numpy.int8)
+            reduced_image_arr = numpy.zeros((2 * self.n + 1, 2 * self.n + 1), dtype=numpy.int8)
+            half_side_len = int(self.side_len / 2)
+            for i in range(2 * self.n + 1):
+                for j in range(2 * self.n + 1):
+                    reduced_image_arr[i][j] = image_arr[self.side_len * i + half_side_len][self.side_len * j + half_side_len]
+            numpy.savetxt(maze_matrix_path, reduced_image_arr, fmt='%d', delimiter=',')
 
             if self.verbose_output:
                 # output_line = f'Maze created #{maze_id}, {key}\n' # no need to print hash (key)
