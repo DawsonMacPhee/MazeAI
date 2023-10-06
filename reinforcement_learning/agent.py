@@ -3,6 +3,7 @@ import random
 import numpy
 from collections import deque
 from maze_game import Game, Direction
+from model import Linear_QNet, QTrainer
 
 MAX_MEMORY = 100000
 BATCH_SIZE = 1000
@@ -12,19 +13,19 @@ class Agent():
     def __init__(self):
         self.n_games = 0
         self.epsilon = 0 # randomness
-        self.gamma = 0 # discout rate
+        self.gamma = 0.9 # discout rate
         self.memory = deque(maxlen=MAX_MEMORY) # double ended queue
-        self.model = None #TODO
-        self.trainer = None #TODO
+        self.model = Linear_QNet(1685, 512, 3)
+        self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
 
     # state - [UP, RIGHT, DOWN, LEFT, TILEMAP]
     def get_state(self, game):
-        dir_u = game.direction = Direction.UP
-        dir_r = game.direction = Direction.RIGHT
-        dir_d = game.direction = Direction.DOWN
-        dir_l = game.direction = Direction.LEFT
+        dir_u = game.direction == Direction.UP
+        dir_r = game.direction == Direction.RIGHT
+        dir_d = game.direction == Direction.DOWN
+        dir_l = game.direction == Direction.LEFT
 
-        return numpy.array([dir_u, dir_r, dir_d, dir_l, game.pathed_tilemap], dtype=int)
+        return numpy.array([dir_u, dir_r, dir_d, dir_l, *game.pathed_tilemap.flatten()], dtype=int)
 
     def remember(self, state, action, reward, next_sate, done):
         self.memory.append((state, action, reward, next_sate, done))
@@ -43,14 +44,14 @@ class Agent():
 
     def get_action(self, state):
         # random moves: tradeoff exploration / explotation
-        self.epsilon = 80 - self.n_games
+        self.epsilon = 500 - self.n_games
         final_move = [0, 0, 0]
-        if random.randint(0, 200) < self.epsilon:
+        if random.randint(0, 5000) < self.epsilon:
             move = random.randint(0, 2)
             final_move[move] = 1
         else:
             state0 = torch.tensor(state, dtype=torch.float)
-            prediction = self.model.predict(state0)
+            prediction = self.model(state0)
             move = torch.argmax(prediction).item()
             final_move[move] = 1
 
@@ -86,13 +87,16 @@ def train():
             agent.n_games += 1
             agent.train_long_memory()
 
-            if score > record
+            if score > record:
                 record = score
-                # agent.model.save()
+                agent.model.save()
 
             print('Game:', agent.n_games, 'Score:', score, 'Record:', record)
 
-            # TODO: plot
+            plot_scores.append(score)
+            total_score += score
+            mean_score = total_score / agent.n_games
+            plot_mean_scores.append(mean_score)
 
 if __name__ == '__main__':
     train()

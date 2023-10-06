@@ -48,20 +48,19 @@ class Game():
         self.pathed_tilemap[1][0] = 2
 
     def run(self):
-        while True:
-            self.draw_map()
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_UP:
-                        self.play_step(1, 0, 0)
-                    elif event.key == pygame.K_LEFT:
-                        self.play_step(0, 1, 0)
-                    elif event.key == pygame.K_RIGHT:
-                        self.play_step(0, 0, 1)
-            self.draw_path()
-            pygame.display.update()
+        self.draw_map()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_UP:
+                    self.play_step(1, 0, 0)
+                elif event.key == pygame.K_LEFT:
+                    self.play_step(0, 1, 0)
+                elif event.key == pygame.K_RIGHT:
+                    self.play_step(0, 0, 1)
+        self.draw_path()
+        pygame.display.update()
 
     def draw_map(self):
         for row in range(self.map_height):
@@ -135,5 +134,7 @@ class Game():
             reward = -10
             game_over = True
             self.reset()
+
+        self.run()
 
         return reward, game_over, self.level - self.start_level
