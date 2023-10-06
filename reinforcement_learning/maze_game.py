@@ -1,8 +1,15 @@
 import pygame
 import numpy
 import os
+from enum import Enum
 
 sourceFileDir = os.path.dirname(os.path.abspath(__file__))
+
+class Direction(Enum):
+    UP = 0
+    RIGHT = 1
+    DOWN = 2
+    LEFT = 3
 
 class Game():
     SIZE = (800, 800)
@@ -35,7 +42,7 @@ class Game():
 
     def reset(self):
         self.path = [[0, 1]]
-        self.direction = [0, 1, 0, 0]
+        self.direction = Direction.RIGHT
         self.pathed_tilemap = self.tilemap.copy()
         self.pathed_tilemap[1][0] = 2
 
@@ -65,42 +72,42 @@ class Game():
             self.screen.blit(self.textures[2], (coord[0]*Game.TILE_SIZE, coord[1]*Game.TILE_SIZE))
 
     def go_straight(self, nextCoord):
-        if self.direction[0]:
+        if self.direction == Direction.UP:
             nextCoord[1] -= 1
-        elif self.direction[1]:
+        elif self.direction == Direction.RIGHT:
             nextCoord[0] += 1
-        elif self.direction[2]:
+        elif self.direction == Direction.DOWN:
             nextCoord[1] += 1
-        elif self.direction[3]:
+        elif self.direction == Direction.LEFT:
             nextCoord[0] -= 1
 
     def turn_left(self, nextCoord):
-        if self.direction[0]:
+        if self.direction == Direction.UP:
             nextCoord[0] -= 1
-            self.direction = [0, 0, 0, 1]
-        elif self.direction[1]:
+            self.direction = Direction.LEFT
+        elif self.direction == Direction.RIGHT:
             nextCoord[1] -= 1
-            self.direction = [1, 0, 0, 0]
-        elif self.direction[2]:
+            self.direction = Direction.UP
+        elif self.direction == Direction.DOWN:
             nextCoord[0] += 1
-            self.direction = [0, 1, 0, 0]
-        elif self.direction[3]:
+            self.direction = Direction.RIGHT
+        elif self.direction == Direction.LEFT:
             nextCoord[1] += 1
-            self.direction = [0, 0, 1, 0]
+            self.direction = Direction.DOWN
 
     def turn_right(self, nextCoord):
-        if self.direction[0]:
+        if self.direction == Direction.UP:
             nextCoord[0] += 1
-            self.direction = [0, 1, 0, 0]
-        elif self.direction[1]:
+            self.direction = Direction.RIGHT
+        elif self.direction == Direction.RIGHT:
             nextCoord[1] += 1
-            self.direction = [0, 0, 1, 0]
-        elif self.direction[2]:
+            self.direction = Direction.DOWN
+        elif self.direction == Direction.DOWN:
             nextCoord[0] -= 1
-            self.direction = [0, 0, 0, 1]
-        elif self.direction[3]:
+            self.direction = Direction.LEFT
+        elif self.direction == Direction.LEFT:
             nextCoord[1] -= 1
-            self.direction = [1, 0, 0, 0]
+            self.direction = Direction.UP
 
     def play_step(self, forward, left, right):
         nextCoord = self.path[len(self.path) - 1].copy()
@@ -127,6 +134,7 @@ class Game():
             reward = 0
 
         print(reward)
+        return reward
 
 game = Game()
 game.run()
