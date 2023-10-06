@@ -30,6 +30,7 @@ class Game():
             if os.path.isfile(os.path.join(sourceFileDir, "maze_labels/" + str(self.level) + ".maze")):
                 self.level += 1
             else:
+                self.start_level = self.level
                 break
             
         self.load_level(self.level)
@@ -121,20 +122,18 @@ class Game():
         self.path.append(nextCoord)
         self.pathed_tilemap[nextCoord[1]][nextCoord[0]] = 2
 
+        reward = 0
+        game_over = False
         if nextCoord == [40, 39]:
             reward = 10
+            game_over = True
             numpy.savetxt(os.path.join(sourceFileDir, "maze_labels/" + str(self.level) + ".maze"), self.pathed_tilemap, fmt='%d', delimiter=',')
             self.level += 1
             self.load_level(self.level)
             self.reset()
         elif self.tilemap[nextCoord[1]][nextCoord[0]] == 0:
             reward = -10
+            game_over = True
             self.reset()
-        else:
-            reward = 0
 
-        print(reward)
-        return reward
-
-game = Game()
-game.run()
+        return reward, game_over, self.level - self.start_level
