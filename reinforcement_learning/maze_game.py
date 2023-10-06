@@ -17,7 +17,14 @@ class Game():
             pygame.image.load(os.path.join(sourceFileDir, "resources/gem.png"))
         ]
 
+        # Find first unsolved level
         self.level = 0
+        for i in range(10000):
+            if os.path.isfile(os.path.join(sourceFileDir, "maze_labels/" + str(self.level) + ".maze")):
+                self.level += 1
+            else:
+                break
+            
         self.load_level(self.level)
         self.reset()
 
@@ -109,6 +116,7 @@ class Game():
 
         if nextCoord == [40, 39]:
             reward = 10
+            numpy.savetxt(os.path.join(sourceFileDir, "maze_labels/" + str(self.level) + ".maze"), self.pathed_tilemap, fmt='%d', delimiter=',')
             self.level += 1
             self.load_level(self.level)
             self.reset()
