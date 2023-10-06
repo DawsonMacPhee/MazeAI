@@ -16,16 +16,21 @@ class Game():
             pygame.image.load(os.path.join(sourceFileDir, "resources/road.jpg")),
             pygame.image.load(os.path.join(sourceFileDir, "resources/gem.png"))
         ]
-        self.tilemap = numpy.loadtxt(os.path.join(sourceFileDir, "../unlabeled_mazes_dataset_10k/matrices/0.maze"), delimiter=',', dtype=numpy.int8)
-        self.mapwidth = len(self.tilemap[0])
-        self.mapheight = len(self.tilemap)
 
-        self.path = [[0, 1]]
-        self.direction = [0, 1, 0, 0]
+        self.level = 0
+        self.load_level(self.level)
+        self.reset()
+
+    def load_level(self, level):
+        self.tilemap = numpy.loadtxt(os.path.join(sourceFileDir, "../unlabeled_mazes_dataset_10k/matrices/" + str(level) + ".maze"), delimiter=',', dtype=numpy.int8)
+        self.map_width = len(self.tilemap[0])
+        self.map_height = len(self.tilemap)
 
     def reset(self):
         self.path = [[0, 1]]
         self.direction = [0, 1, 0, 0]
+        self.pathed_tilemap = self.tilemap.copy()
+        self.pathed_tilemap[1][0] = 2
 
     def run(self):
         while True:
@@ -44,8 +49,8 @@ class Game():
             pygame.display.update()
 
     def draw_map(self):
-        for row in range(self.mapheight):
-            for column in range(self.mapwidth):
+        for row in range(self.map_height):
+            for column in range(self.map_width):
                 self.screen.blit(self.textures[self.tilemap[row][column]], (column*Game.TILE_SIZE, row*Game.TILE_SIZE))
 
     def draw_path(self):
@@ -61,7 +66,6 @@ class Game():
             nextCoord[1] += 1
         elif self.direction[3]:
             nextCoord[0] -= 1
-        self.path.append(nextCoord)
 
     def turn_left(self, nextCoord):
         if self.direction[0]:
@@ -76,7 +80,6 @@ class Game():
         elif self.direction[3]:
             nextCoord[1] += 1
             self.direction = [0, 0, 1, 0]
-        self.path.append(nextCoord)
 
     def turn_right(self, nextCoord):
         if self.direction[0]:
@@ -91,7 +94,6 @@ class Game():
         elif self.direction[3]:
             nextCoord[1] -= 1
             self.direction = [1, 0, 0, 0]
-        self.path.append(nextCoord)
 
     def play_step(self, forward, left, right):
         nextCoord = self.path[len(self.path) - 1].copy()
@@ -102,8 +104,13 @@ class Game():
         elif right:
             self.turn_right(nextCoord)
 
+        self.path.append(nextCoord)
+        self.pathed_tilemap[nextCoord[1]][nextCoord[0]] = 2
+
         if nextCoord == [40, 39]:
             reward = 10
+            self.level += 1
+            self.load_level(self.level)
             self.reset()
         elif self.tilemap[nextCoord[1]][nextCoord[0]] == 0:
             reward = -10
