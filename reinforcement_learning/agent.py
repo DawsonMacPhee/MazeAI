@@ -39,7 +39,7 @@ class Agent():
         self.trainer.train_step(state, action, reward, next_state, done)
 
     def get_action(self, state):
-        time.sleep(0.5)
+        time.sleep(0.4)
         # random moves: tradeoff exploration / explotation
         self.epsilon = 500 - self.n_games
         final_move = [0, 0, 0]
