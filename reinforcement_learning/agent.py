@@ -4,6 +4,7 @@ import numpy
 from collections import deque
 from maze_game import Game, Direction
 from model import Linear_QNet, QTrainer
+import time
 
 MAX_MEMORY = 100000
 BATCH_SIZE = 1000
@@ -38,6 +39,7 @@ class Agent():
         self.trainer.train_step(state, action, reward, next_state, done)
 
     def get_action(self, state):
+        time.sleep(0.5)
         # random moves: tradeoff exploration / explotation
         self.epsilon = 500 - self.n_games
         final_move = [0, 0, 0]

@@ -12,16 +12,16 @@ class Direction(Enum):
     LEFT = 3
 
 class Game():
-    SIZE = (800, 800)
-    TILE_SIZE = 19.5
+    SIZE = (500, 500)
+    TILE_SIZE = 45.5
 
     def __init__(self):
         pygame.init()
         self.screen = pygame.display.set_mode(Game.SIZE)
         self.textures = [
-            pygame.image.load(os.path.join(sourceFileDir, "resources/wall.jpg")),
-            pygame.image.load(os.path.join(sourceFileDir, "resources/road.jpg")),
-            pygame.image.load(os.path.join(sourceFileDir, "resources/gem.png"))
+            pygame.transform.scale(pygame.image.load(os.path.join(sourceFileDir, "resources/wall.jpg")), (Game.TILE_SIZE + 1, Game.TILE_SIZE + 1)),
+            pygame.transform.scale(pygame.image.load(os.path.join(sourceFileDir, "resources/road.jpg")), (Game.TILE_SIZE + 1, Game.TILE_SIZE + 1)),
+            pygame.transform.scale(pygame.image.load(os.path.join(sourceFileDir, "resources/gem.png")), (Game.TILE_SIZE + 1, Game.TILE_SIZE + 1))
         ]
 
         # Find first unsolved level
@@ -37,7 +37,7 @@ class Game():
         self.reset()
 
     def load_level(self, level):
-        self.tilemap = numpy.loadtxt(os.path.join(sourceFileDir, "../unlabeled_mazes_dataset_10k/matrices/" + str(level) + ".maze"), delimiter=',', dtype=numpy.int8)
+        self.tilemap = numpy.loadtxt(os.path.join(sourceFileDir, "../unlabeled_mazes_dataset_1k/matrices/" + str(level) + ".maze"), delimiter=',', dtype=numpy.int8)
         self.map_width = len(self.tilemap[0])
         self.map_height = len(self.tilemap)
 
