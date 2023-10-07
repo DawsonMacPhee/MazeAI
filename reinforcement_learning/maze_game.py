@@ -111,7 +111,7 @@ class Game():
             reward += 2
 
         if new_path:
-            reward += 3
+            reward += 4
 
         self.run()
 
