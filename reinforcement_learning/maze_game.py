@@ -5,12 +5,6 @@ from enum import Enum
 
 sourceFileDir = os.path.dirname(os.path.abspath(__file__))
 
-class Direction(Enum):
-    UP = 0
-    RIGHT = 1
-    DOWN = 2
-    LEFT = 3
-
 class Game():
     SIZE = (500, 500)
     TILE_SIZE = 45.5
@@ -21,7 +15,8 @@ class Game():
         self.textures = [
             pygame.transform.scale(pygame.image.load(os.path.join(sourceFileDir, "resources/wall.jpg")), (Game.TILE_SIZE + 1, Game.TILE_SIZE + 1)),
             pygame.transform.scale(pygame.image.load(os.path.join(sourceFileDir, "resources/road.jpg")), (Game.TILE_SIZE + 1, Game.TILE_SIZE + 1)),
-            pygame.transform.scale(pygame.image.load(os.path.join(sourceFileDir, "resources/gem.png")), (Game.TILE_SIZE + 1, Game.TILE_SIZE + 1))
+            pygame.transform.scale(pygame.image.load(os.path.join(sourceFileDir, "resources/path.png")), (Game.TILE_SIZE + 1, Game.TILE_SIZE + 1)),
+            pygame.transform.scale(pygame.image.load(os.path.join(sourceFileDir, "resources/player.png")), (Game.TILE_SIZE + 1, Game.TILE_SIZE + 1))
         ]
 
         # Find first unsolved level
@@ -43,9 +38,8 @@ class Game():
 
     def reset(self):
         self.path = [[0, 1]]
-        self.direction = Direction.RIGHT
         self.pathed_tilemap = self.tilemap.copy()
-        self.pathed_tilemap[1][0] = 2
+        self.pathed_tilemap[1][0] = 3
 
     def run(self):
         self.draw_map()
@@ -54,11 +48,13 @@ class Game():
                 pygame.quit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP:
-                    self.play_step(1, 0, 0)
-                elif event.key == pygame.K_LEFT:
-                    self.play_step(0, 1, 0)
+                    self.play_step(1, 0, 0, 0)
                 elif event.key == pygame.K_RIGHT:
-                    self.play_step(0, 0, 1)
+                    self.play_step(0, 1, 0, 0)
+                elif event.key == pygame.K_DOWN:
+                    self.play_step(0, 0, 1, 0)
+                elif event.key == pygame.K_LEFT:
+                    self.play_step(0, 0, 0, 1)
         self.draw_path()
         pygame.display.update()
 
@@ -68,80 +64,54 @@ class Game():
                 self.screen.blit(self.textures[self.tilemap[row][column]], (column*Game.TILE_SIZE, row*Game.TILE_SIZE))
 
     def draw_path(self):
-        for coord in self.path:
-            self.screen.blit(self.textures[2], (coord[0]*Game.TILE_SIZE, coord[1]*Game.TILE_SIZE))
+        for i, coord in enumerate(self.path):
+            if i < len(self.path) - 1:
+                self.screen.blit(self.textures[2], (coord[0]*Game.TILE_SIZE, coord[1]*Game.TILE_SIZE))
+            else:
+                self.screen.blit(self.textures[3], (coord[0]*Game.TILE_SIZE, coord[1]*Game.TILE_SIZE))
 
-    def go_straight(self, nextCoord):
-        if self.direction == Direction.UP:
-            nextCoord[1] -= 1
-        elif self.direction == Direction.RIGHT:
-            nextCoord[0] += 1
-        elif self.direction == Direction.DOWN:
-            nextCoord[1] += 1
-        elif self.direction == Direction.LEFT:
-            nextCoord[0] -= 1
-
-    def turn_left(self, nextCoord):
-        if self.direction == Direction.UP:
-            nextCoord[0] -= 1
-            self.direction = Direction.LEFT
-        elif self.direction == Direction.RIGHT:
-            nextCoord[1] -= 1
-            self.direction = Direction.UP
-        elif self.direction == Direction.DOWN:
-            nextCoord[0] += 1
-            self.direction = Direction.RIGHT
-        elif self.direction == Direction.LEFT:
-            nextCoord[1] += 1
-            self.direction = Direction.DOWN
-
-    def turn_right(self, nextCoord):
-        if self.direction == Direction.UP:
-            nextCoord[0] += 1
-            self.direction = Direction.RIGHT
-        elif self.direction == Direction.RIGHT:
-            nextCoord[1] += 1
-            self.direction = Direction.DOWN
-        elif self.direction == Direction.DOWN:
-            nextCoord[0] -= 1
-            self.direction = Direction.LEFT
-        elif self.direction == Direction.LEFT:
-            nextCoord[1] -= 1
-            self.direction = Direction.UP
-
-    def play_step(self, forward, left, right):
-        nextCoord = self.path[len(self.path) - 1].copy()
-        if forward:
-            self.go_straight(nextCoord)
-        elif left:
-            self.turn_left(nextCoord)
+    def play_step(self, up, right, down, left):
+        next_coord = self.path[len(self.path) - 1].copy()
+        
+        if up:
+            next_coord[1] -= 1
         elif right:
-            self.turn_right(nextCoord)
+            next_coord[0] += 1
+        elif down:
+            next_coord[1] += 1
+        elif left:
+            next_coord[0] -= 1
 
-        self.path.append(nextCoord)
-        self.pathed_tilemap[nextCoord[1]][nextCoord[0]] = 2
+        last_coord = self.path[len(self.path) - 1]
+        self.path.append(next_coord)
+
+        new_path = False
+        if (self.pathed_tilemap[next_coord[1]][next_coord[0]] == 1):
+            new_path = True
+
+        self.pathed_tilemap[last_coord[1]][last_coord[0]] = 2
+        self.pathed_tilemap[next_coord[1]][next_coord[0]] = 3
 
         reward = 0
         game_over = False
 
-        if nextCoord == [40, 39]:
-            reward = 10
+        if next_coord == [40, 39]:
+            reward = 25
             game_over = True
             numpy.savetxt(os.path.join(sourceFileDir, "maze_labels/" + str(self.level) + ".maze"), self.pathed_tilemap, fmt='%d', delimiter=',')
             self.level += 1
             self.load_level(self.level)
             self.reset()
-        elif self.tilemap[nextCoord[1]][nextCoord[0]] == 0:
+        elif self.tilemap[next_coord[1]][next_coord[0]] == 0:
             reward = -10
             game_over = True
             self.reset()
 
-        if left or right:
-            reward += 1
-            if not game_over:
-                reward += 4
-        elif len(self.path) % 12:
-            reward += 1
+        if len(self.path) % 5 == 0:
+            reward += 2
+
+        if new_path:
+            reward += 3
 
         self.run()
 

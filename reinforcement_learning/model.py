@@ -9,7 +9,7 @@ class Linear_QNet(torch.nn.Module):
         self.conv2 = torch.nn.Conv2d(6, 16, 3)
         self.linear1 = torch.nn.Linear(16, 128)
         self.linear2 = torch.nn.Linear(128, 64)
-        self.linear3 = torch.nn.Linear(64, 3)
+        self.linear3 = torch.nn.Linear(64, 4)
         self.pool = torch.nn.MaxPool2d(2, 2)
 
     def forward(self, x):
@@ -67,5 +67,4 @@ class QTrainer():
         self.optimizer.zero_grad()
         loss = self.criterion(target, pred)
         loss.backward()
-
         self.optimizer.step()

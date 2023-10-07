@@ -2,13 +2,13 @@ import torch
 import random
 import numpy
 from collections import deque
-from maze_game import Game, Direction
+from maze_game import Game
 from model import Linear_QNet, QTrainer
 import time
 
 MAX_MEMORY = 100000
 BATCH_SIZE = 1000
-LR = 0.001
+LR = 0.01
 
 class Agent():
     def __init__(self):
@@ -19,7 +19,7 @@ class Agent():
         self.model = Linear_QNet()
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
 
-    # state - [UP, RIGHT, DOWN, LEFT, TILEMAP]
+    # state - [[TILEMAP]]
     def get_state(self, game):
         return numpy.array(game.pathed_tilemap, dtype=int)
 
@@ -39,12 +39,12 @@ class Agent():
         self.trainer.train_step(state, action, reward, next_state, done)
 
     def get_action(self, state):
-        time.sleep(0.4)
+        time.sleep(0.2)
         # random moves: tradeoff exploration / explotation
         self.epsilon = 500 - self.n_games
-        final_move = [0, 0, 0]
+        final_move = [0, 0, 0, 0]
         if random.randint(0, 1500) < self.epsilon:
-            move = random.randint(0, 2)
+            move = random.randint(0, 3)
             final_move[move] = 1
         else:
             state0 = torch.tensor([[state]], dtype=torch.float)
@@ -62,7 +62,11 @@ def train():
     agent = Agent()
     game = Game()
 
+    total_reward = 0
+    total_moves = 0
     while True:
+        total_moves += 1
+
         # get old state
         state_old = agent.get_state(game)
 
@@ -70,7 +74,8 @@ def train():
         final_move = agent.get_action(state_old)
 
         # perform move and get new state
-        reward, done, score = game.play_step(final_move[0], final_move[1], final_move[2])
+        reward, done, score = game.play_step(final_move[0], final_move[1], final_move[2], final_move[3])
+        total_reward += reward
         state_new = agent.get_state(game)
 
         # train short memory
@@ -88,7 +93,10 @@ def train():
                 record = score
                 agent.model.save()
 
-            print('Game:', agent.n_games, 'Score:', score, 'Record:', record)
+            print('Game:', agent.n_games, '| Score:', score, '| Record:', record, '| Total Moves:', total_moves, '| Total Reward:', total_reward)
+
+            total_reward = 0
+            total_moves = 0
 
             plot_scores.append(score)
             total_score += score
