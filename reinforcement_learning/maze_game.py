@@ -20,7 +20,7 @@ class Game():
         ]
 
         # Find first unsolved level
-        self.level = 0
+        self.level = 1
         for i in range(10000):
             if os.path.isfile(os.path.join(sourceFileDir, "maze_labels/" + str(self.level) + ".maze")):
                 self.level += 1
@@ -96,22 +96,21 @@ class Game():
         game_over = False
 
         if next_coord == [40, 39]:
-            reward = 25
+            reward = 15
             game_over = True
             numpy.savetxt(os.path.join(sourceFileDir, "maze_labels/" + str(self.level) + ".maze"), self.pathed_tilemap, fmt='%d', delimiter=',')
             self.level += 1
             self.load_level(self.level)
             self.reset()
         elif self.tilemap[next_coord[1]][next_coord[0]] == 0:
-            reward = -10
+            reward = -15
             game_over = True
             self.reset()
 
-        if len(self.path) % 5 == 0:
-            reward += 2
-
         if new_path:
-            reward += 4
+            reward += 2
+        else:
+            reward -= 1
 
         self.run()
 

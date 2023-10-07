@@ -8,13 +8,13 @@ import time
 
 MAX_MEMORY = 100000
 BATCH_SIZE = 1000
-LR = 0.01
+LR = 0.005
 
 class Agent():
     def __init__(self):
         self.n_games = 0
         self.epsilon = 0 # randomness
-        self.gamma = 0.9 # discout rate
+        self.gamma = 0.5 # discout rate
         self.memory = deque(maxlen=MAX_MEMORY) # double ended queue
         self.model = Linear_QNet()
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
@@ -41,9 +41,9 @@ class Agent():
     def get_action(self, state):
         time.sleep(0.1)
         # random moves: tradeoff exploration / explotation
-        self.epsilon = 500 - self.n_games
+        self.epsilon = 2000 - self.n_games
         final_move = [0, 0, 0, 0]
-        if random.randint(0, 1500) < self.epsilon:
+        if random.randint(0, 12000) < self.epsilon:
             move = random.randint(0, 3)
             final_move[move] = 1
         else:

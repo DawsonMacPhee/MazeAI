@@ -5,10 +5,10 @@ class Linear_QNet(torch.nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.conv1 = torch.nn.Conv2d(1, 6, 3)
-        self.conv2 = torch.nn.Conv2d(6, 16, 3)
-        self.linear1 = torch.nn.Linear(16, 128)
-        self.linear2 = torch.nn.Linear(128, 64)
+        self.conv1 = torch.nn.Conv2d(1, 64, 4)
+        self.conv2 = torch.nn.Conv2d(64, 128, 3)
+        self.linear1 = torch.nn.Linear(128, 256)
+        self.linear2 = torch.nn.Linear(256, 64)
         self.linear3 = torch.nn.Linear(64, 4)
         self.pool = torch.nn.MaxPool2d(2, 2)
 
@@ -60,9 +60,10 @@ class QTrainer():
         for idx in range(len(done)):
             Q_new = reward[idx]
             if not done[idx]:
-                Q_new = reward[idx] + self.gamma * torch.max(self.model(torch.unsqueeze(next_state[idx], 0)))
+                next_pred = self.model(torch.unsqueeze(next_state[idx], 0))
+                Q_new = reward[idx] + self.gamma * torch.max(next_pred)
 
-            target[idx][torch.argmax(action).item()] = Q_new
+            target[idx][torch.argmax(action[idx]).item()] = Q_new
 
         self.optimizer.zero_grad()
         loss = self.criterion(target, pred)
