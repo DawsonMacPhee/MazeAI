@@ -15,17 +15,12 @@ class Agent():
         self.epsilon = 0 # randomness
         self.gamma = 0.9 # discout rate
         self.memory = deque(maxlen=MAX_MEMORY) # double ended queue
-        self.model = Linear_QNet(1685, 512, 3)
+        self.model = Linear_QNet()
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
 
     # state - [UP, RIGHT, DOWN, LEFT, TILEMAP]
     def get_state(self, game):
-        dir_u = game.direction == Direction.UP
-        dir_r = game.direction == Direction.RIGHT
-        dir_d = game.direction == Direction.DOWN
-        dir_l = game.direction == Direction.LEFT
-
-        return numpy.array([dir_u, dir_r, dir_d, dir_l, *game.pathed_tilemap.flatten()], dtype=int)
+        return numpy.array(game.pathed_tilemap, dtype=int)
 
     def remember(self, state, action, reward, next_sate, done):
         self.memory.append((state, action, reward, next_sate, done))
@@ -46,11 +41,11 @@ class Agent():
         # random moves: tradeoff exploration / explotation
         self.epsilon = 500 - self.n_games
         final_move = [0, 0, 0]
-        if random.randint(0, 5000) < self.epsilon:
+        if random.randint(0, 1500) < self.epsilon:
             move = random.randint(0, 2)
             final_move[move] = 1
         else:
-            state0 = torch.tensor(state, dtype=torch.float)
+            state0 = torch.tensor([[state]], dtype=torch.float)
             prediction = self.model(state0)
             move = torch.argmax(prediction).item()
             final_move[move] = 1

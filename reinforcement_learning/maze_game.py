@@ -123,6 +123,7 @@ class Game():
 
         reward = 0
         game_over = False
+
         if nextCoord == [40, 39]:
             reward = 10
             game_over = True
@@ -134,6 +135,13 @@ class Game():
             reward = -10
             game_over = True
             self.reset()
+
+        if left or right:
+            reward += 1
+            if not game_over:
+                reward += 4
+        elif len(self.path) % 12:
+            reward += 1
 
         self.run()
 
