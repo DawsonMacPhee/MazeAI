@@ -5,21 +5,60 @@ class Linear_QNet(torch.nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.conv1 = torch.nn.Conv2d(1, 64, 4)
-        self.conv2 = torch.nn.Conv2d(64, 128, 3)
-        self.linear1 = torch.nn.Linear(128, 256)
-        self.linear2 = torch.nn.Linear(256, 64)
-        self.linear3 = torch.nn.Linear(64, 4)
+        self.conv1 = torch.nn.Conv2d(1, 32, 3, padding = 1)
+        self.conv2 = torch.nn.Conv2d(32, 64, 3, stride = 1, padding = 1)
+        self.conv3 = torch.nn.Conv2d(64, 128, 3, stride = 1, padding = 1)
+        self.conv4 = torch.nn.Conv2d(128, 128, 3, stride = 1, padding = 1)
+        self.conv5 = torch.nn.Conv2d(128, 256, 3, stride = 1, padding = 1)
+        self.conv6 = torch.nn.Conv2d(256, 256, 3, stride = 1, padding = 1)
+
+        self.linear1 = torch.nn.Linear(256, 1024)
+        self.linear2 = torch.nn.Linear(1024, 512)
+        self.linear3 = torch.nn.Linear(512, 4)
+
         self.pool = torch.nn.MaxPool2d(2, 2)
 
-    def forward(self, x):
-        x = self.pool(torch.nn.functional.relu(self.conv1(x)))
-        x = self.pool(torch.nn.functional.relu(self.conv2(x)))
-        x = torch.flatten(x, 1) # flatten all dimensions except batch
-        x = torch.nn.functional.relu(self.linear1(x))
-        x = torch.nn.functional.relu(self.linear2(x))
-        x = self.linear3(x)
-        return x
+    def forward(self, input):
+        # First Convolution Block
+        output = self.conv1(input)
+
+        output = torch.nn.functional.leaky_relu(output)
+        output = self.conv2(output)
+
+        output = torch.nn.functional.leaky_relu(output)
+        output = self.pool(output)
+
+        # Second Convolution Block
+        output = self.conv3(output)
+
+        output = torch.nn.functional.leaky_relu(output)
+        output = self.conv4(output)
+
+        output = torch.nn.functional.leaky_relu(output)
+        output = self.pool(output)
+
+        # Third Convolution Block
+        output = self.conv5(output)
+
+        output = torch.nn.functional.leaky_relu(output)
+        output = self.conv6(output)
+
+        output = torch.nn.functional.leaky_relu(output)
+        output = self.pool(output)
+
+        # Flatten
+        output = torch.flatten(output, 1)
+
+        # Fully Connected Layers
+        output = self.linear1(output)
+
+        output = torch.nn.functional.leaky_relu(output) 
+        output = self.linear2(output)
+
+        output = torch.nn.functional.leaky_relu(output) 
+        output = self.linear3(output)
+
+        return output
 
     def save(self, file_name='model.pth'):
         model_folder_path = './model'

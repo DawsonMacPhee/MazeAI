@@ -27,7 +27,7 @@ class Game():
             else:
                 self.start_level = self.level
                 break
-            
+        
         self.load_level(self.level)
         self.reset()
 
@@ -40,6 +40,7 @@ class Game():
         self.path = [[0, 1]]
         self.pathed_tilemap = self.tilemap.copy()
         self.pathed_tilemap[1][0] = 3
+        self.moves = 0
 
     def run(self):
         self.draw_map()
@@ -71,8 +72,10 @@ class Game():
                 self.screen.blit(self.textures[3], (coord[0]*Game.TILE_SIZE, coord[1]*Game.TILE_SIZE))
 
     def play_step(self, up, right, down, left):
+        self.moves += 1
+        moves = self.moves
+
         next_coord = self.path[len(self.path) - 1].copy()
-        
         if up:
             next_coord[1] -= 1
         elif right:
@@ -82,19 +85,10 @@ class Game():
         elif left:
             next_coord[0] -= 1
 
-        last_coord = self.path[len(self.path) - 1]
-        self.path.append(next_coord)
-
-        new_path = False
-        if (self.pathed_tilemap[next_coord[1]][next_coord[0]] == 1):
-            new_path = True
-
-        self.pathed_tilemap[last_coord[1]][last_coord[0]] = 2
-        self.pathed_tilemap[next_coord[1]][next_coord[0]] = 3
-
         reward = 0
         game_over = False
-
+        new_path = False
+        collision = False
         if next_coord == [40, 39]:
             reward = 15
             game_over = True
@@ -102,16 +96,30 @@ class Game():
             self.level += 1
             self.load_level(self.level)
             self.reset()
-        elif self.tilemap[next_coord[1]][next_coord[0]] == 0:
+        elif self.moves >= 500:
             reward = -15
             game_over = True
+            collision = True
             self.reset()
+        elif self.tilemap[next_coord[1]][next_coord[0]] == 0:
+            reward = -15
+            collision = True
+
+        if not collision:
+            last_coord = self.path[len(self.path) - 1]
+            self.path.append(next_coord)
+
+            if (self.pathed_tilemap[next_coord[1]][next_coord[0]] == 1):
+                new_path = True
+
+            self.pathed_tilemap[last_coord[1]][last_coord[0]] = 1
+            self.pathed_tilemap[next_coord[1]][next_coord[0]] = 3
 
         if new_path:
             reward += 2
         else:
-            reward -= 1
+            reward -= 2
 
         self.run()
 
-        return reward, game_over, self.level - self.start_level
+        return reward, game_over, moves, self.level - self.start_level

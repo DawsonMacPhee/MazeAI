@@ -39,11 +39,10 @@ class Agent():
         self.trainer.train_step(state, action, reward, next_state, done)
 
     def get_action(self, state):
-        time.sleep(0.1)
         # random moves: tradeoff exploration / explotation
-        self.epsilon = 2000 - self.n_games
+        self.epsilon = 500 - self.n_games
         final_move = [0, 0, 0, 0]
-        if random.randint(0, 12000) < self.epsilon:
+        if random.randint(0, 6000) < self.epsilon:
             move = random.randint(0, 3)
             final_move[move] = 1
         else:
@@ -62,11 +61,10 @@ def train():
     agent = Agent()
     game = Game()
 
-    total_reward = 0
-    total_moves = 0
+    total_newmoves = 0
+    total_collisions = 0
+    total_backtracks = 0
     while True:
-        total_moves += 1
-
         # get old state
         state_old = agent.get_state(game)
 
@@ -74,8 +72,13 @@ def train():
         final_move = agent.get_action(state_old)
 
         # perform move and get new state
-        reward, done, score = game.play_step(final_move[0], final_move[1], final_move[2], final_move[3])
-        total_reward += reward
+        reward, done, total_moves, score = game.play_step(final_move[0], final_move[1], final_move[2], final_move[3])
+        if reward > 0:
+            total_newmoves += 1
+        elif reward == -2:
+            total_backtracks += 1
+        else:
+            total_collisions += 1
         state_new = agent.get_state(game)
 
         # train short memory
@@ -93,10 +96,11 @@ def train():
                 record = score
                 agent.model.save()
 
-            print('Game:', agent.n_games, '| Score:', score, '| Record:', record, '| Total Moves:', total_moves, '| Total Reward:', total_reward)
+            print('Game:', agent.n_games, '| Score:', score, '| Record:', record, '| Total Moves:', total_moves, '| New Moves:', total_newmoves, '| Backtracks:', total_backtracks, '| Collisions:', total_collisions)
 
-            total_reward = 0
-            total_moves = 0
+            total_newmoves = 0
+            total_collisions = 0
+            total_backtracks = 0
 
             plot_scores.append(score)
             total_score += score
