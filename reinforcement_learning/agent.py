@@ -13,7 +13,7 @@ LR = 0.005
 class Agent():
     def __init__(self):
         self.n_games = 0
-        self.epsilon = 0 # randomness
+        self.epsilon = 0.3 # randomness
         self.gamma = 0.5 # discout rate
         self.memory = deque(maxlen=MAX_MEMORY) # double ended queue
         self.model = Linear_QNet()
@@ -40,9 +40,8 @@ class Agent():
 
     def get_action(self, state):
         # random moves: tradeoff exploration / explotation
-        self.epsilon = 500 - self.n_games
         final_move = [0, 0, 0, 0]
-        if random.randint(0, 6000) < self.epsilon:
+        if self.n_games < 500 and random.uniform(0, 1) < self.epsilon:
             move = random.randint(0, 3)
             final_move[move] = 1
         else:
@@ -61,9 +60,7 @@ def train():
     agent = Agent()
     game = Game()
 
-    total_newmoves = 0
     total_collisions = 0
-    total_backtracks = 0
     while True:
         # get old state
         state_old = agent.get_state(game)
@@ -73,11 +70,7 @@ def train():
 
         # perform move and get new state
         reward, done, total_moves, score = game.play_step(final_move[0], final_move[1], final_move[2], final_move[3])
-        if reward > 0:
-            total_newmoves += 1
-        elif reward == -2:
-            total_backtracks += 1
-        else:
+        if reward == -10:
             total_collisions += 1
         state_new = agent.get_state(game)
 
@@ -96,11 +89,9 @@ def train():
                 record = score
                 agent.model.save()
 
-            print('Game:', agent.n_games, '| Score:', score, '| Record:', record, '| Total Moves:', total_moves, '| New Moves:', total_newmoves, '| Backtracks:', total_backtracks, '| Collisions:', total_collisions)
+            print('Game:', agent.n_games, '| Score:', score, '| Record:', record, '| Total Moves:', total_moves, '| Collisions:', total_collisions)
 
-            total_newmoves = 0
             total_collisions = 0
-            total_backtracks = 0
 
             plot_scores.append(score)
             total_score += score
