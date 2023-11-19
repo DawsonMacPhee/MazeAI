@@ -91,15 +91,10 @@ class Game():
         if next_coord == [10, 9]: # Handle sucessful finish
             reward = 10
             game_over = True
-            ignore_move = True
             numpy.savetxt(os.path.join(sourceFileDir, "maze_labels/" + str(self.level) + ".maze"), self.pathed_tilemap, fmt='%d', delimiter=',')
-            self.level += 1
-            self.load_level(self.level)
-            self.reset()
         elif self.moves >= 500: # Handle run out of time
-            game_over = True
             ignore_move = True
-            self.reset()
+            game_over = True
         elif self.tilemap[next_coord[1]][next_coord[0]] == 0: # Handle collision
             reward = -10
             ignore_move = True
@@ -110,7 +105,22 @@ class Game():
 
             self.pathed_tilemap[last_coord[1]][last_coord[0]] = 1
             self.pathed_tilemap[next_coord[1]][next_coord[0]] = 3
+            state_new = self.pathed_tilemap
+        else:
+            last_coord = self.path[len(self.path) - 1]
+
+            state_new = self.pathed_tilemap
+            state_new[last_coord[1]][last_coord[0]] = 1
+            state_new[next_coord[1]][next_coord[0]] = 3
 
         self.run()
 
-        return reward, game_over, moves, self.level - self.start_level
+        # Handles resets if nessesary, after rendering the finished display
+        if game_over:
+            self.reset()
+        if reward == 10:
+            self.level += 1
+            self.load_level(self.level)
+
+        state_new = numpy.array(state_new, dtype=int)
+        return state_new, reward, game_over, moves, self.level - self.start_level

@@ -69,10 +69,9 @@ def train():
         final_move = agent.get_action(state_old)
 
         # perform move and get new state
-        reward, done, total_moves, score = game.play_step(final_move[0], final_move[1], final_move[2], final_move[3])
+        state_new, reward, done, total_moves, score = game.play_step(final_move[0], final_move[1], final_move[2], final_move[3])
         if reward == -10:
             total_collisions += 1
-        state_new = agent.get_state(game)
 
         # train short memory
         agent.train_short_memory(state_old, final_move, reward, state_new, done)
