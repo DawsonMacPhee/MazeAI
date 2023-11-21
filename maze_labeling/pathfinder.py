@@ -1,6 +1,5 @@
 import numpy
 import os
-import copy
 
 # Based on A* algorithm found in https://medium.com/@nicholas.w.swift/easy-a-star-pathfinding-7e6689c7f7b2
 
@@ -11,15 +10,15 @@ class PathFinder():
     def findEnds(self):
         foundStart = False
         foundGoal = False
-        for i in range(0,len(self.tilemap)):
-            for j in range(0,len(self.tilemap[0])):
-                if not foundStart and self.tilemap[i][j] == 3:
+        for i in range(0,len(self.maze)):
+            for j in range(0,len(self.maze[0])):
+                if not foundStart and self.maze[i][j] == 3:
                     self.start_pos = Node(position=(i,j))
                     self.start_pos.g = self.start_pos.h = self.start_pos.f = 0
                     foundStart = True
                     if foundGoal:
                         return
-                elif not foundGoal and self.tilemap[i][j] == 4:
+                elif not foundGoal and self.maze[i][j] == 4:
                     self.goal_pos = Node(position=(i,j))
                     self.goal_pos.g = self.goal_pos.h = self.goal_pos.f = 0
                     foundGoal = True
@@ -65,7 +64,7 @@ class PathFinder():
 
             # Generate children
             children = []
-            for new_position in [(0, -1), (0, 1), (-1, 0), (1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]: # Adjacent squares
+            for new_position in [(0, -1), (0, 1), (-1, 0), (1, 0)]: # Adjacent squares
 
                 # Get node position
                 node_position = (current_node.position[0] + new_position[0], current_node.position[1] + new_position[1])
@@ -88,20 +87,24 @@ class PathFinder():
             for child in children:
 
                 # Child is on the closed list
-                for closed_child in closed_list:
-                    if child == closed_child:
-                        continue
+                if child in closed_list:
+                    continue
 
                 # Create the f, g, and h values
                 child.g = current_node.g + 1
                 child.h = ((child.position[0] - self.goal_pos.position[0]) ** 2) + ((child.position[1] - self.goal_pos.position[1]) ** 2)
                 child.f = child.g + child.h
 
+                in_open = False
                 # Child is already in the open list
                 for open_node in open_list:
                     if child == open_node and child.g > open_node.g:
+                        in_open = True
                         continue
-
+                
+                if in_open:
+                    continue
+                
                 # Add the child to the open list
                 open_list.append(child)
       
