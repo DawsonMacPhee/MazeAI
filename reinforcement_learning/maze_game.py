@@ -16,7 +16,8 @@ class Game():
             pygame.transform.scale(pygame.image.load(os.path.join(sourceFileDir, "resources/wall.jpg")), (Game.TILE_SIZE + 1, Game.TILE_SIZE + 1)),
             pygame.transform.scale(pygame.image.load(os.path.join(sourceFileDir, "resources/road.jpg")), (Game.TILE_SIZE + 1, Game.TILE_SIZE + 1)),
             pygame.transform.scale(pygame.image.load(os.path.join(sourceFileDir, "resources/path.png")), (Game.TILE_SIZE + 1, Game.TILE_SIZE + 1)),
-            pygame.transform.scale(pygame.image.load(os.path.join(sourceFileDir, "resources/player.png")), (Game.TILE_SIZE + 1, Game.TILE_SIZE + 1))
+            pygame.transform.scale(pygame.image.load(os.path.join(sourceFileDir, "resources/player.png")), (Game.TILE_SIZE + 1, Game.TILE_SIZE + 1)),
+            pygame.transform.scale(pygame.image.load(os.path.join(sourceFileDir, "resources/exit.jpg")), (Game.TILE_SIZE + 1, Game.TILE_SIZE + 1))
         ]
 
         # Find first unsolved level
@@ -32,7 +33,7 @@ class Game():
         self.reset()
 
     def load_level(self, level):
-        self.tilemap = numpy.loadtxt(os.path.join(sourceFileDir, "../unlabeled_mazes_dataset_1k/matrices/" + str(level) + ".maze"), delimiter=',', dtype=numpy.int8)
+        self.tilemap = numpy.loadtxt(os.path.join(sourceFileDir, "../unlabeled_maze_test_1000/matrices/" + str(level) + ".maze"), delimiter=',', dtype=numpy.int8)
         self.map_width = len(self.tilemap[0])
         self.map_height = len(self.tilemap)
         self.findStart()
@@ -69,7 +70,10 @@ class Game():
     def draw_map(self):
         for row in range(self.map_height):
             for column in range(self.map_width):
-                self.screen.blit(self.textures[self.tilemap[row][column]], (column*Game.TILE_SIZE, row*Game.TILE_SIZE))
+                if (self.tilemap[row][column] == 3): 
+                    self.screen.blit(self.textures[1], (column*Game.TILE_SIZE, row*Game.TILE_SIZE))
+                else:
+                    self.screen.blit(self.textures[self.tilemap[row][column]], (column*Game.TILE_SIZE, row*Game.TILE_SIZE))
 
     def draw_path(self):
         for i, coord in enumerate(self.path):
