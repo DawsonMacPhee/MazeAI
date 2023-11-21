@@ -96,6 +96,17 @@ class RectangularDataset:
             for i in range(2 * self.n + 1):
                 for j in range(2 * self.n + 1):
                     reduced_image_arr[i][j] = image_arr[self.side_len * i + half_side_len][self.side_len * j + half_side_len]
+            
+            # set it to generalized format
+            reduced_image_arr[1][0] = 0
+            reduced_image_arr[len(reduced_image_arr)-2][len(reduced_image_arr[0])-1] = 0
+            
+            # Set start and finish
+            
+            reduced_image_arr[1][1] = 3
+            reduced_image_arr[len(reduced_image_arr)-2][len(reduced_image_arr[0])-2] = 4
+                    
+            
             numpy.savetxt(maze_matrix_path, reduced_image_arr, fmt='%d', delimiter=',')
 
             if self.verbose_output:

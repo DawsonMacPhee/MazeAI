@@ -35,12 +35,19 @@ class Game():
         self.tilemap = numpy.loadtxt(os.path.join(sourceFileDir, "../unlabeled_mazes_dataset_1k/matrices/" + str(level) + ".maze"), delimiter=',', dtype=numpy.int8)
         self.map_width = len(self.tilemap[0])
         self.map_height = len(self.tilemap)
+        self.findStart()
 
     def reset(self):
-        self.path = [[0, 1]]
+        self.path = [self.start_pos,]
         self.pathed_tilemap = self.tilemap.copy()
-        self.pathed_tilemap[1][0] = 3
         self.moves = 0
+        
+    def findStart(self):
+        for i in range(0,len(self.tilemap)):
+            for j in range(0,len(self.tilemap[0])):
+                if self.tilemap[i][j] == 3:
+                    self.start_pos = [i,j]
+                    return
 
     def run(self):
         self.draw_map()
@@ -88,7 +95,7 @@ class Game():
         reward = -1
         game_over = False
         ignore_move = False
-        if next_coord == [10, 9]: # Handle sucessful finish
+        if self.tilemap[next_coord[1]][next_coord[0]] == 4: # Handle sucessful finish
             reward = 10
             game_over = True
             numpy.savetxt(os.path.join(sourceFileDir, "maze_labels/" + str(self.level) + ".maze"), self.pathed_tilemap, fmt='%d', delimiter=',')
