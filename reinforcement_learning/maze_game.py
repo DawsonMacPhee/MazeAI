@@ -105,11 +105,11 @@ class Game():
 
             self.pathed_tilemap[last_coord[1]][last_coord[0]] = 1
             self.pathed_tilemap[next_coord[1]][next_coord[0]] = 3
-            state_new = self.pathed_tilemap
+            state_new = self.pathed_tilemap.copy()
         else:
             last_coord = self.path[len(self.path) - 1]
 
-            state_new = self.pathed_tilemap
+            state_new = self.pathed_tilemap.copy()
             state_new[last_coord[1]][last_coord[0]] = 1
             state_new[next_coord[1]][next_coord[0]] = 3
 

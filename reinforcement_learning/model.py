@@ -82,7 +82,10 @@ class QTrainer():
         action = torch.tensor(action, dtype=torch.long)
         reward = torch.tensor(reward, dtype=torch.float)
 
+        print_info = False
+
         if len(state.shape) == 2:
+            print_info = True
             state = torch.unsqueeze(torch.unsqueeze(state, 0), 0)
             next_state = torch.unsqueeze(torch.unsqueeze(next_state, 0), 0)
             action = torch.unsqueeze(action, 0)
@@ -94,6 +97,9 @@ class QTrainer():
 
         # predict Q values with current state
         pred = self.model(state)
+        #if print_info:
+            #print(state)
+            #print(pred)
 
         target = pred.clone()
         for idx in range(len(done)):
@@ -103,6 +109,8 @@ class QTrainer():
                 Q_new = reward[idx] + self.gamma * torch.max(next_pred)
 
             target[idx][torch.argmax(action[idx]).item()] = Q_new
+            #if print_info:
+                #print(idx, target[idx])
 
         self.optimizer.zero_grad()
         loss = self.criterion(target, pred)

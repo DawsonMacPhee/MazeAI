@@ -45,7 +45,7 @@ class Agent():
             move = random.randint(0, 3)
             final_move[move] = 1
         else:
-            state0 = torch.tensor([[state]], dtype=torch.float)
+            state0 = torch.tensor(numpy.expand_dims(numpy.expand_dims(state, axis=0), axis=0), dtype=torch.float)
             prediction = self.model(state0)
             move = torch.argmax(prediction).item()
             final_move[move] = 1
@@ -83,12 +83,9 @@ def train():
             # train long memory, plot result
             agent.n_games += 1
             agent.train_long_memory()
+            agent.model.save()
 
-            if score > record:
-                record = score
-                agent.model.save()
-
-            print('Game:', agent.n_games, '| Score:', score, '| Record:', record, '| Total Moves:', total_moves, '| Collisions:', total_collisions)
+            print('Game:', agent.n_games, '| Score:', score, '| Total Moves:', total_moves, '| Collisions:', total_collisions)
 
             total_collisions = 0
 
