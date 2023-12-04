@@ -35,12 +35,15 @@ class Game():
         self.tilemap = numpy.loadtxt(os.path.join(sourceFileDir, "../unlabeled_mazes_dataset_1k/matrices/" + str(level) + ".maze"), delimiter=',', dtype=numpy.int8)
         self.map_width = len(self.tilemap[0])
         self.map_height = len(self.tilemap)
+        self.min_reward = -0.5 * self.map_width * self.map_height
 
     def reset(self):
-        self.path = [[0, 1]]
-        self.pathed_tilemap = self.tilemap.copy()
-        self.pathed_tilemap[1][0] = 3
+        self.path = [[1, 1]]
+        self.pathed_tilemap = self.tilemap.copy().astype(float)
+        self.pathed_tilemap[1][1] = 0.3 # Starting position
+        self.pathed_tilemap[9][9] = 0.9 # Ending position
         self.moves = 0
+        self.total_reward = 0
 
     def run(self):
         self.draw_map()
@@ -85,44 +88,39 @@ class Game():
         elif left:
             next_coord[0] -= 1
 
-        reward = -1
+        reward = -0.04
         game_over = False
         ignore_move = False
-        if next_coord == [10, 9]: # Handle sucessful finish
-            reward = 10
+        if next_coord == [9, 9]: # Handle sucessful finish
+            reward = 1.0
             game_over = True
             #numpy.savetxt(os.path.join(sourceFileDir, "maze_labels/" + str(self.level) + ".maze"), self.pathed_tilemap, fmt='%d', delimiter=',')
-        elif self.moves >= 500: # Handle run out of time
-            ignore_move = True
-            game_over = True
         elif self.tilemap[next_coord[1]][next_coord[0]] == 0: # Handle collision
-            reward = -10
+            reward = -0.75
             ignore_move = True
+        elif next_coord in self.path: # Handle repeat path
+            reward = -0.25
+
+        if self.total_reward < self.min_reward: # Handle run out of time
+            game_over = True
 
         if not ignore_move:
             last_coord = self.path[len(self.path) - 1]
             self.path.append(next_coord)
 
-            self.pathed_tilemap[last_coord[1]][last_coord[0]] = 1
-            self.pathed_tilemap[next_coord[1]][next_coord[0]] = 3
-            state_new = self.pathed_tilemap.copy()
-        else:
-            last_coord = self.path[len(self.path) - 1]
-
-            state_new = self.pathed_tilemap.copy()
-            state_new[last_coord[1]][last_coord[0]] = 1
-            state_new[next_coord[1]][next_coord[0]] = 3
+            self.pathed_tilemap[last_coord[1]][last_coord[0]] = 0.6
+            self.pathed_tilemap[next_coord[1]][next_coord[0]] = 0.3
 
         self.run()
 
         # Handles resets if nessesary, after rendering the finished display
         if game_over:
             self.reset()
-        if reward == 10:
+        if reward == 1.0:
             self.reset()
             # DISABLING NEXT LEVEL FOR TESTING
             #self.level += 1
             #self.load_level(self.level)
 
-        state_new = numpy.array(state_new, dtype=int)
-        return state_new, reward, game_over, moves, self.level - self.start_level
+        self.total_reward += reward
+        return self.pathed_tilemap.copy(), reward, game_over, moves, self.level - self.start_level

@@ -13,15 +13,15 @@ LR = 0.005
 class Agent():
     def __init__(self):
         self.n_games = 0
-        self.epsilon = 0.2 # randomness
-        self.gamma = 0.6 # discout rate
+        self.epsilon = 0.1 # randomness
+        self.gamma = 0.95 # discout rate
         self.memory = deque(maxlen=MAX_MEMORY) # double ended queue
         self.model = Linear_QNet()
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
 
     # state - [[TILEMAP]]
     def get_state(self, game):
-        return numpy.array(game.pathed_tilemap, dtype=int)
+        return numpy.array(game.pathed_tilemap, dtype=float)
 
     def remember(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done))
@@ -41,7 +41,7 @@ class Agent():
     def get_action(self, state):
         # random moves: tradeoff exploration / explotation
         final_move = [0, 0, 0, 0]
-        if self.n_games < 500 and random.uniform(0, 1) < self.epsilon:
+        if self.n_games < 1500 and random.uniform(0, 1) < self.epsilon:
             move = random.randint(0, 3)
             final_move[move] = 1
         else:
@@ -70,7 +70,7 @@ def train():
 
         # perform move and get new state
         state_new, reward, done, total_moves, score = game.play_step(final_move[0], final_move[1], final_move[2], final_move[3])
-        if reward == -10:
+        if reward == -0.75:
             total_collisions += 1
 
         # train short memory
@@ -85,7 +85,11 @@ def train():
             agent.train_long_memory()
             agent.model.save()
 
-            print('Game:', agent.n_games, '| Score:', score, '| Total Moves:', total_moves, '| Collisions:', total_collisions)
+            win = False
+            if reward == 1.0:
+                win = True
+
+            print('Game:', agent.n_games, '| Score:', score, '| Total Moves:', total_moves, '| Collisions:', total_collisions, '| Win:', win)
 
             total_collisions = 0
 

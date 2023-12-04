@@ -7,41 +7,19 @@ class Linear_QNet(torch.nn.Module):
 
         self.conv1 = torch.nn.Conv2d(1, 32, 3, padding = 1)
         self.conv2 = torch.nn.Conv2d(32, 64, 3, stride = 1, padding = 1)
-        self.conv3 = torch.nn.Conv2d(64, 128, 3, stride = 1, padding = 1)
-        self.conv4 = torch.nn.Conv2d(128, 128, 3, stride = 1, padding = 1)
-        self.conv5 = torch.nn.Conv2d(128, 256, 3, stride = 1, padding = 1)
-        self.conv6 = torch.nn.Conv2d(256, 256, 3, stride = 1, padding = 1)
 
-        self.linear1 = torch.nn.Linear(256, 1024)
+        self.linear1 = torch.nn.Linear(1600, 1024)
         self.linear2 = torch.nn.Linear(1024, 512)
         self.linear3 = torch.nn.Linear(512, 4)
 
         self.pool = torch.nn.MaxPool2d(2, 2)
 
     def forward(self, input):
-        # First Convolution Block
+        # Convolution Block
         output = self.conv1(input)
 
         output = torch.nn.functional.leaky_relu(output)
         output = self.conv2(output)
-
-        output = torch.nn.functional.leaky_relu(output)
-        output = self.pool(output)
-
-        # Second Convolution Block
-        output = self.conv3(output)
-
-        output = torch.nn.functional.leaky_relu(output)
-        output = self.conv4(output)
-
-        output = torch.nn.functional.leaky_relu(output)
-        output = self.pool(output)
-
-        # Third Convolution Block
-        output = self.conv5(output)
-
-        output = torch.nn.functional.leaky_relu(output)
-        output = self.conv6(output)
 
         output = torch.nn.functional.leaky_relu(output)
         output = self.pool(output)
@@ -82,10 +60,7 @@ class QTrainer():
         action = torch.tensor(action, dtype=torch.long)
         reward = torch.tensor(reward, dtype=torch.float)
 
-        print_info = False
-
         if len(state.shape) == 2:
-            print_info = True
             state = torch.unsqueeze(torch.unsqueeze(state, 0), 0)
             next_state = torch.unsqueeze(torch.unsqueeze(next_state, 0), 0)
             action = torch.unsqueeze(action, 0)
@@ -102,22 +77,11 @@ class QTrainer():
         for idx in range(len(done)):
             Q_new = reward[idx]
 
-            #if print_info:
-                #print(idx)
-                #print(state[idx])
-                #print(target[idx])
-                #print(next_state[idx])
-
             if not done[idx]:
                 next_pred = self.model(torch.unsqueeze(next_state[idx], 0))
                 Q_new = reward[idx] + self.gamma * torch.max(next_pred)
-                #if print_info:
-                    #print(next_pred)
 
             target[idx][torch.argmax(action[idx]).item()] = Q_new
-
-            #if print_info:
-                #print(target[idx])
 
         self.optimizer.zero_grad()
         loss = self.criterion(target, pred)
