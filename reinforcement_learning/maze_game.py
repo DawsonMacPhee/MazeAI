@@ -91,7 +91,7 @@ class Game():
         if next_coord == [10, 9]: # Handle sucessful finish
             reward = 10
             game_over = True
-            numpy.savetxt(os.path.join(sourceFileDir, "maze_labels/" + str(self.level) + ".maze"), self.pathed_tilemap, fmt='%d', delimiter=',')
+            #numpy.savetxt(os.path.join(sourceFileDir, "maze_labels/" + str(self.level) + ".maze"), self.pathed_tilemap, fmt='%d', delimiter=',')
         elif self.moves >= 500: # Handle run out of time
             ignore_move = True
             game_over = True
@@ -119,8 +119,10 @@ class Game():
         if game_over:
             self.reset()
         if reward == 10:
-            self.level += 1
-            self.load_level(self.level)
+            self.reset()
+            # DISABLING NEXT LEVEL FOR TESTING
+            #self.level += 1
+            #self.load_level(self.level)
 
         state_new = numpy.array(state_new, dtype=int)
         return state_new, reward, game_over, moves, self.level - self.start_level

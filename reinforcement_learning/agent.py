@@ -13,8 +13,8 @@ LR = 0.005
 class Agent():
     def __init__(self):
         self.n_games = 0
-        self.epsilon = 0.3 # randomness
-        self.gamma = 0.5 # discout rate
+        self.epsilon = 0.2 # randomness
+        self.gamma = 0.6 # discout rate
         self.memory = deque(maxlen=MAX_MEMORY) # double ended queue
         self.model = Linear_QNet()
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
@@ -23,8 +23,8 @@ class Agent():
     def get_state(self, game):
         return numpy.array(game.pathed_tilemap, dtype=int)
 
-    def remember(self, state, action, reward, next_sate, done):
-        self.memory.append((state, action, reward, next_sate, done))
+    def remember(self, state, action, reward, next_state, done):
+        self.memory.append((state, action, reward, next_state, done))
 
     def train_long_memory(self):
         if len(self.memory) > BATCH_SIZE:
