@@ -40,8 +40,7 @@ class Game():
     def reset(self):
         self.path = [[1, 1]]
         self.pathed_tilemap = self.tilemap.copy().astype(float)
-        self.pathed_tilemap[1][1] = 0.3 # Starting position
-        self.pathed_tilemap[9][9] = 0.9 # Ending position
+        self.pathed_tilemap[1][1] = 0.5 # Starting position
         self.moves = 0
         self.total_reward = 0
 
@@ -108,8 +107,8 @@ class Game():
             last_coord = self.path[len(self.path) - 1]
             self.path.append(next_coord)
 
-            self.pathed_tilemap[last_coord[1]][last_coord[0]] = 0.6
-            self.pathed_tilemap[next_coord[1]][next_coord[0]] = 0.3
+            self.pathed_tilemap[last_coord[1]][last_coord[0]] = 1.0
+            self.pathed_tilemap[next_coord[1]][next_coord[0]] = 0.5
 
         self.run()
 

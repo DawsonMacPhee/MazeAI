@@ -42,10 +42,12 @@ class Agent():
         # random moves: tradeoff exploration / explotation
         final_move = [0, 0, 0, 0]
         if self.n_games < 1500 and random.uniform(0, 1) < self.epsilon:
+            #print("RANDOM")
             move = random.randint(0, 3)
             final_move[move] = 1
         else:
-            state0 = torch.tensor(numpy.expand_dims(numpy.expand_dims(state, axis=0), axis=0), dtype=torch.float)
+            #print("PREDICTION")
+            state0 = torch.tensor(numpy.expand_dims(state, axis=0), dtype=torch.float)
             prediction = self.model(state0)
             move = torch.argmax(prediction).item()
             final_move[move] = 1
@@ -61,6 +63,8 @@ def train():
     game = Game()
 
     total_collisions = 0
+    total_backtracks = 0
+    win_count = 0
     while True:
         # get old state
         state_old = agent.get_state(game)
@@ -72,6 +76,8 @@ def train():
         state_new, reward, done, total_moves, score = game.play_step(final_move[0], final_move[1], final_move[2], final_move[3])
         if reward == -0.75:
             total_collisions += 1
+        elif reward == -0.25:
+            total_backtracks += 1
 
         # train short memory
         agent.train_short_memory(state_old, final_move, reward, state_new, done)
@@ -87,11 +93,12 @@ def train():
 
             win = False
             if reward == 1.0:
-                win = True
+                win_count += 1
 
-            print('Game:', agent.n_games, '| Score:', score, '| Total Moves:', total_moves, '| Collisions:', total_collisions, '| Win:', win)
+            print('Game:', agent.n_games, '| Score:', score, '| Total Moves:', total_moves, '| Collisions:', total_collisions, '| Backtracks:', total_backtracks, '| Wins:', win_count)
 
             total_collisions = 0
+            total_backtracks = 0
 
             plot_scores.append(score)
             total_score += score
