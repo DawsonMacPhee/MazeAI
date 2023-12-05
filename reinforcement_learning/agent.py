@@ -6,9 +6,9 @@ from maze_game import Game
 from model import Linear_QNet, QTrainer
 import time
 
-MAX_MEMORY = 100000
-BATCH_SIZE = 1000
-LR = 0.005
+MAX_MEMORY = 2000
+BATCH_SIZE = 100
+LR = 0.001
 
 class Agent():
     def __init__(self):
@@ -26,27 +26,23 @@ class Agent():
     def remember(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done))
 
-    def train_long_memory(self):
+    def train_model(self):
         if len(self.memory) > BATCH_SIZE:
             mini_sample = random.sample(self.memory, BATCH_SIZE) # list of tuples
         else:
             mini_sample = self.memory
 
         states, actions, rewards, next_states, dones = zip(*mini_sample)
-        self.trainer.train_step(states, actions, rewards, next_states, dones)
-
-    def train_short_memory(self, state, action, reward, next_state, done):
-        self.trainer.train_step(state, action, reward, next_state, done)
+        for i in range(8):
+            self.trainer.train_step(states, actions, rewards, next_states, dones)
 
     def get_action(self, state):
         # random moves: tradeoff exploration / explotation
         final_move = [0, 0, 0, 0]
         if self.n_games < 1500 and random.uniform(0, 1) < self.epsilon:
-            #print("RANDOM")
             move = random.randint(0, 3)
             final_move[move] = 1
         else:
-            #print("PREDICTION")
             state0 = torch.tensor(numpy.expand_dims(state, axis=0), dtype=torch.float)
             prediction = self.model(state0)
             move = torch.argmax(prediction).item()
@@ -79,16 +75,14 @@ def train():
         elif reward == -0.25:
             total_backtracks += 1
 
-        # train short memory
-        agent.train_short_memory(state_old, final_move, reward, state_new, done)
-
         # remember
         agent.remember(state_old, final_move, reward, state_new, done)
 
+        # train model
+        agent.train_model()
+
         if done:
-            # train long memory, plot result
             agent.n_games += 1
-            agent.train_long_memory()
             agent.model.save()
 
             win = False
