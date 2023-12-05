@@ -1,6 +1,7 @@
 import pygame
 import numpy
 import os
+import random
 from enum import Enum
 
 sourceFileDir = os.path.dirname(os.path.abspath(__file__))
@@ -36,13 +37,33 @@ class Game():
         self.map_width = len(self.tilemap[0])
         self.map_height = len(self.tilemap)
         self.min_reward = -0.5 * self.map_width * self.map_height
+        self.num_games = 0
+
+    def get_random_start(self):
+        if self.num_games < 25:
+            rows = range(7, 10)
+        elif self.num_games < 50:
+            rows = range(4, 10)
+        elif self.num_games < 75:
+            rows = range(1, 10)
+        else:
+            return [1, 1]
+
+        free_cells = [[c, r] for r in range(self.map_height) for c in rows if self.tilemap[r,c] == 1.0]
+        if [9, 9] in free_cells:
+            free_cells.remove([9, 9])
+        return random.choice(free_cells)
 
     def reset(self):
-        self.path = [[1, 1]]
+        # Randomize starting pos
+        start_pos = self.get_random_start()
+
+        self.path = [start_pos]
         self.pathed_tilemap = self.tilemap.copy().astype(float)
-        self.pathed_tilemap[1][1] = 0.3 # Starting position
+        self.pathed_tilemap[start_pos[1]][start_pos[0]] = 0.3 # Starting position
         self.moves = 0
         self.total_reward = 0
+
 
     def run(self):
         self.draw_map()
@@ -114,10 +135,11 @@ class Game():
         # Handles resets if nessesary, after rendering the finished display
         moves = self.moves
         if game_over:
+            self.num_games += 1
             self.reset()
-        if reward == 1.0:
-            self.reset()
-            # DISABLING NEXT LEVEL FOR TESTING
+
+        # DISABLING NEXT LEVEL FOR TESTING
+        #if reward == 1.0:
             #self.level += 1
             #self.load_level(self.level)
 
