@@ -40,27 +40,17 @@ class Game():
         self.num_games = 0
 
     def get_random_start(self):
-        if self.num_games < 25:
-            rows = range(7, 10)
-        elif self.num_games < 50:
-            rows = range(4, 10)
-        elif self.num_games < 75:
-            rows = range(1, 10)
+        if self.num_games < 20:
+            free_cells = [[c, r] for r in range(self.map_height) for c in range(self.map_width) if self.tilemap[r,c] == 1.0]
+            free_cells.remove([9, 9])
+            return random.choice(free_cells)
         else:
             return [1, 1]
 
-        free_cells = [[c, r] for r in range(self.map_height) for c in rows if self.tilemap[r,c] == 1.0]
-        if [9, 9] in free_cells:
-            free_cells.remove([9, 9])
-        return random.choice(free_cells)
-
     def reset(self):
-        # Randomize starting pos
-        start_pos = self.get_random_start()
-
-        self.path = [start_pos]
+        self.path = [[1, 1]]
         self.pathed_tilemap = self.tilemap.copy().astype(float)
-        self.pathed_tilemap[start_pos[1]][start_pos[0]] = 0.3 # Starting position
+        self.pathed_tilemap[1][1] = 0.3 # Starting position
         self.moves = 0
         self.total_reward = 0
 

@@ -43,7 +43,7 @@ class Agent():
             move = random.randint(0, 3)
             final_move[move] = 1
         else:
-            state0 = torch.tensor(numpy.expand_dims(state, axis=0), dtype=torch.float)
+            state0 = torch.tensor(numpy.expand_dims(numpy.expand_dims(state, axis=0), axis=1), dtype=torch.float)
             prediction = self.model(state0)
             move = torch.argmax(prediction).item()
             final_move[move] = 1
