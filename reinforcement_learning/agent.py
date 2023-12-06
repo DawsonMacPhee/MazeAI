@@ -4,9 +4,11 @@ import numpy
 from collections import deque
 from maze_game import Game
 from model import Linear_QNet, QTrainer
+from IPython import get_ipython
 import time
+import matplotlib.pyplot as plt
 
-MAX_MEMORY = 3000
+MAX_MEMORY = 2500
 BATCH_SIZE = 100
 LR = 0.001
 
@@ -18,6 +20,8 @@ class Agent():
         self.memory = deque(maxlen=MAX_MEMORY) # double ended queue
         self.model = Linear_QNet()
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
+
+        plt.ion()
 
     # state - [[TILEMAP]]
     def get_state(self, game):
@@ -51,10 +55,17 @@ class Agent():
         return final_move
 
 def train():
-    plot_scores = []
-    plot_mean_scores = []
-    total_score = 0
-    record = 0
+    fig, axes = plt.subplots(nrows=2, ncols=1)
+    ax1, ax2 = axes
+    plt.subplots_adjust(hspace=0.4, right=0.84)
+    plt.show(block=False)
+
+    plot_collisions = [0]
+    plot_backtracks = [0]
+    plot_total_moves = [0]
+    plot_wins = [0]
+    plot_n_games = [0]
+
     agent = Agent()
     game = Game()
 
@@ -91,13 +102,29 @@ def train():
 
             print('Game:', agent.n_games, '| Score:', score, '| Total Moves:', total_moves, '| Collisions:', total_collisions, '| Backtracks:', total_backtracks, '| Wins:', win_count)
 
+            plot_collisions.append(total_collisions)
+            plot_backtracks.append(total_backtracks)
+            plot_total_moves.append(total_moves)
+            plot_wins.append(win_count)
+            plot_n_games.append(agent.n_games)
+
+            ax1.clear()
+            ax1.set_title('Algorithm Effectivness')
+            ax1.set_xlabel('Games Played')
+            ax1.set_ylabel('Number of Actions')
+            ax1.plot(plot_n_games, plot_total_moves, label="Total Moves")
+            ax1.plot(plot_n_games, plot_collisions, label="Collisions")
+            ax1.plot(plot_n_games, plot_backtracks, label="Backtracks")
+            ax1.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
+            ax2.clear()
+            ax2.set_title('Win Rate')
+            ax2.set_xlabel('Games Played')
+            ax2.set_ylabel('Number of Winning Games')
+            ax2.plot(plot_n_games, plot_wins)
+
             total_collisions = 0
             total_backtracks = 0
-
-            plot_scores.append(score)
-            total_score += score
-            mean_score = total_score / agent.n_games
-            plot_mean_scores.append(mean_score)
 
 if __name__ == '__main__':
     train()
