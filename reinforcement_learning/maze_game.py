@@ -33,7 +33,7 @@ class Game():
         self.reset()
 
     def load_level(self, level):
-        self.tilemap = numpy.loadtxt(os.path.join(sourceFileDir, "../unlabeled_mazes_dataset_1k/matrices/" + str(level) + ".maze"), delimiter=',', dtype=numpy.int8)
+        self.tilemap = numpy.loadtxt(os.path.join(sourceFileDir, "dataset/matrices/" + str(level) + ".maze"), delimiter=',', dtype=numpy.int8)
         self.map_width = len(self.tilemap[0])
         self.map_height = len(self.tilemap)
         self.min_reward = -0.5 * self.map_width * self.map_height
@@ -128,10 +128,9 @@ class Game():
             self.num_games += 1
             self.reset()
 
-        # DISABLING NEXT LEVEL FOR TESTING
-        #if reward == 1.0:
-            #self.level += 1
-            #self.load_level(self.level)
+        if reward == 1.0 and self.num_games % 20 == 0:
+            self.level += 1
+            self.load_level(self.level)
 
         self.total_reward += reward
         return self.pathed_tilemap.copy(), reward, game_over, moves, self.level - self.start_level

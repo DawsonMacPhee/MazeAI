@@ -6,7 +6,7 @@ from maze_game import Game
 from model import Linear_QNet, QTrainer
 import time
 
-MAX_MEMORY = 2000
+MAX_MEMORY = 3000
 BATCH_SIZE = 100
 LR = 0.001
 
