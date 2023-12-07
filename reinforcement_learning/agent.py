@@ -8,7 +8,7 @@ from IPython import get_ipython
 import time
 import matplotlib.pyplot as plt
 
-MAX_MEMORY = 2500
+MAX_MEMORY = 1500
 BATCH_SIZE = 100
 LR = 0.001
 
@@ -55,9 +55,9 @@ class Agent():
         return final_move
 
 def train():
-    fig, axes = plt.subplots(nrows=2, ncols=1)
-    ax1, ax2 = axes
-    plt.subplots_adjust(hspace=0.4, right=0.84)
+    fig, axes = plt.subplots(nrows=3, ncols=1)
+    ax1, ax2, ax3 = axes
+    plt.subplots_adjust(hspace=0.45, right=0.84)
     plt.show(block=False)
 
     plot_collisions = [0]
@@ -65,13 +65,19 @@ def train():
     plot_total_moves = [0]
     plot_wins = [0]
     plot_n_games = [0]
+    plot_times = [0]
 
     agent = Agent()
     game = Game()
 
+    win_count = 0
+    total_time = 0
+
     total_collisions = 0
     total_backtracks = 0
-    win_count = 0
+    last_time = 0
+
+    start_time = time.time()
     while True:
         # get old state
         state_old = agent.get_state(game)
@@ -93,6 +99,7 @@ def train():
         agent.train_model()
 
         if done:
+            total_time = time.time() - start_time
             agent.n_games += 1
             agent.model.save()
 
@@ -100,17 +107,18 @@ def train():
             if reward == 1.0:
                 win_count += 1
 
-            print('Game:', agent.n_games, '| Score:', score, '| Total Moves:', total_moves, '| Collisions:', total_collisions, '| Backtracks:', total_backtracks, '| Wins:', win_count)
+            print('Game:', agent.n_games, '| Score:', score, '| Total Moves:', total_moves, '| Collisions:', total_collisions, '| Backtracks:', total_backtracks, '| Wins:', win_count, '| Delta Time:', round((total_time - last_time) / 60, 2), '| Total Time:', round(total_time / 60, 2))
 
             plot_collisions.append(total_collisions)
             plot_backtracks.append(total_backtracks)
             plot_total_moves.append(total_moves)
             plot_wins.append(win_count)
             plot_n_games.append(agent.n_games)
+            plot_times.append(round((total_time - last_time) / 60, 2))
 
             ax1.clear()
-            ax1.set_title('Algorithm Effectivness')
-            ax1.set_xlabel('Games Played')
+            ax1.set_title('Algorithm Effectiveness')
+            ax1.set_xlabel('Game Number')
             ax1.set_ylabel('Number of Actions')
             ax1.plot(plot_n_games, plot_total_moves, label="Total Moves")
             ax1.plot(plot_n_games, plot_collisions, label="Collisions")
@@ -119,12 +127,19 @@ def train():
 
             ax2.clear()
             ax2.set_title('Win Rate')
-            ax2.set_xlabel('Games Played')
+            ax2.set_xlabel('Game Number')
             ax2.set_ylabel('Number of Winning Games')
             ax2.plot(plot_n_games, plot_wins)
 
+            ax3.clear()
+            ax3.set_title('Elaspsed Time')
+            ax3.set_xlabel('Game Number')
+            ax3.set_ylabel('Time to Complete (minutes)')
+            ax3.plot(plot_n_games, plot_times)
+
             total_collisions = 0
             total_backtracks = 0
+            last_time = total_time
 
 if __name__ == '__main__':
     train()
